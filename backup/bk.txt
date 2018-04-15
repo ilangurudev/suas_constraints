@@ -1,0 +1,95 @@
+model = ConcreteModel()
+
+# number of missions
+model.missions = range(len(missions.keys()))
+
+# number of pilots
+model.pilots = range(len(pilots.keys()))
+
+#number of unique models
+model.unique_models = range(len(models))
+
+
+model.pm = Var(model.pilots, model.unique_models, within = Binary)
+model.tm = Var(model.missions, model.unique_models, within = Binary)
+
+
+# add constraints
+
+# each uav model can be used in a maximum of 3 times as many missions as the number of pilots driving that model
+# and each uav model must be used in at least 1 time as many missions as the number of pilots driving that model
+
+
+model.model_mission = ConstraintList()
+for m in model.unique_models:
+    model.model_mission.add(sum(model.tm[t,m] for t in model.missions) <= 3*sum(model.pm[p,m] for p in model.pilots))
+    model.model_mission.add(sum(model.tm[t,m] for t in model.missions) >= sum(model.pm[p,m] for p in model.pilots))
+#     model.model_mission.add(3*sum(model.tm[p,m] for p in model.pilots) >= sum(model.tm[t,m] for t in model.missions))
+#     model.model_mission.add(sum(model.tm[p,m] for p in model.pilots) <= sum(model.tm[t,m] for t in model.missions))
+        
+
+
+#each pilot drives maximum 1 uav:
+model.pilot_single_uav = ConstraintList()
+for pilot in model.pilots:
+    model.pilot_single_uav.add(sum(model.pm[pilot,m] for m in model.unique_models) <= 1)
+
+
+#pilot model compatibility constraint
+model.pilot_model_compatibility = ConstraintList()
+pilot_keys = list(pilots.keys())
+for pilot in model.pilots:
+    compatible_models = pilots[pilot_keys[pilot]]
+    for m in model.unique_models:
+        compatibility = compatible_models[m]
+        model.pilot_model_compatibility.add(model.pm[pilot, m] <= compatibility)
+        
+    
+#Number of models constraint?
+model.num_models_constraint = ConstraintList()
+for m in model.unique_models:
+    num_available = nuas[m]
+    model.num_models_constraint.add(sum(model.pm[p, m] for p in model.pilots) <= num_available)
+    
+        
+# one mission has at the maximum one UAV 
+#(preferably atleast 1 uav but that might cause infeasibility, so incorporated into objective)
+model.one_uav_per_mission = ConstraintList()
+for t in model.missions:
+    model.one_uav_per_mission.add(sum(model.tm[t, m] for m in model.unique_models) <= 1)
+
+
+#mission model compatibility constaint
+model.mission_model_compatibility = ConstraintList()
+mission_keys = list(missions.keys())
+for t in model.missions:
+    compatible_models = missions[mission_keys[t]]
+    for m in model.unique_models:
+        compatibility = compatible_models[m]
+        model.mission_model_compatibility.add(model.tm[t,m] <= compatibility)
+        
+model.objective = Objective(expr = summation(model.tm) +  , 
+                            sense = maximize )
+
+from pyomo.opt import SolverFactory
+opt2 = SolverFactory("glpk")
+results=opt2.solve(model, tee=True)
+
+mission_keys = list(missions.keys())
+pilot_keys = list(pilots.keys())
+# solution_keys = list(solution.keys())
+for t in model.missions:
+    print("\n")
+    print("Mission:", mission_keys[t])
+    current_model = None
+    current_pilot = None
+    for m in model.unique_models:
+        if model.tm[t , m].value == 1:
+            current_model = models[m]
+            for p in model.pilots:
+                if model.pm[p , m].value > 0 and model.pm[p , m].value <= 3:
+                    model.pm[p , m].value = model.pm[p , m].value + 1.0        
+                    current_pilot = pilot_keys[p]
+                    break
+    print("Model:", current_model)
+    print("Pilot:", current_pilot)
