@@ -1,0 +1,49 @@
+%%% Vector of UAS model names (9) which will need for pretty printing
+AR200
+Disco
+Falcon
+Mavic
+M600
+P4
+PHK
+ScanEagle
+Solo
+%%%%
+MT A 110111001  % SA
+MT B 101111101 % Inspection
+MT C 110111101 % ground search
+MT D 010111001  % water search
+MT E 101111111  % debris estimation
+MT F 110111001 % tactical SA
+MT G 000000000 % delivery
+%%% Pilot name, UAS models can fly, favorite UAS model
+P Merrick 010101001 000100000
+P Adams 111111101 000100000
+P Gingrich 000101101 000100000
+P Major 100000010 100000000
+P McCracken 010101101 000010000
+P Griffin 100001101 100010000
+P Murphy 101111101 000010000
+%%% Number of UAS available by model
+NUAS 111512512  % 9 characters each is the number of a UAS model, no more than 9 of any model
+%%% Mission name and Mission Type
+M 1 E
+M 2 E
+M 3 E
+M 4 E
+M 5 E
+M 6 E
+M 7 E
+M 8 B
+M 9 B
+M 10 B
+M 11 B
+M 12 B
+M 13 B
+M 14 B
+M 15 B
+M 16 B
+M 17 B
+M 18 B
+M 19 F
+M 20 A

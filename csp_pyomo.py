@@ -59,6 +59,7 @@ def parse_inputs(path):
                 for i in l_nuas:
                     nuas.append(i)
             else:   
+                # print(line)
                 models.append(line)
 #     print()
     print("Number of missions:", len(missions.keys()), "and number of mission types: ", len(list(mission_types.keys())))
@@ -153,7 +154,7 @@ for t in model.missions:
 # model.objective = Objective(expr = summation(model.tm) +  , 
 #                             sense = maximize )
 
-model.objective = Objective(expr = summation(model.tm) + sum(pilots_favorable[p][m]*model.pm[p, m] for p in model.pilots for m in model.unique_models),
+model.objective = Objective(expr = 60*summation(model.tm) + sum(pilots_favorable[p][m]*model.pm[p, m] for p in model.pilots for m in model.unique_models),
                             sense = maximize )
 
 
